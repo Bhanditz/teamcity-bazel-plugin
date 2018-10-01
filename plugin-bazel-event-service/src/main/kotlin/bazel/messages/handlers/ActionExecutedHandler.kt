@@ -5,12 +5,9 @@ import bazel.Verbosity
 import bazel.atLeast
 import bazel.bazel.events.ActionExecuted
 import bazel.bazel.events.BazelEvent
-import bazel.bazel.events.File
 import bazel.messages.Color
 import bazel.messages.ServiceMessageContext
 import bazel.messages.apply
-import bazel.messages.logError
-import java.net.URI
 
 class ActionExecutedHandler : EventHandler {
     override val priority: HandlerPriority
@@ -25,17 +22,17 @@ class ActionExecutedHandler : EventHandler {
                 val details = StringBuilder()
                 details.appendln(event.cmdLines.joinToStringEscaped().trim())
 
-                var content = readFromFile(event.primaryOutput, ctx)
+                var content = event.primaryOutput.content
                 if (content.isNotBlank()) {
                     details.appendln(content)
                 }
 
-                content = readFromFile(event.stdout, ctx)
+                content = event.stdout.content
                 if (content.isNotBlank()) {
                     details.appendln(content)
                 }
 
-                content = readFromFile(event.stderr, ctx)
+                content = event.stderr.content
                 if (content.isNotBlank()) {
                     details.appendln(content.apply(Color.Error))
                 }
@@ -74,24 +71,4 @@ class ActionExecutedHandler : EventHandler {
 
                 true
             } else ctx.handlerIterator.next().handle(ctx)
-
-
-    private fun readFromFile(file: File, ctx: ServiceMessageContext): String {
-        if (file.uri.isBlank()) {
-            return ""
-        }
-
-        return try {
-            val progressFile = java.io.File(URI(file.uri))
-            try {
-                progressFile.readText().trim()
-            } catch (ex: Exception) {
-                ctx.logError("Cannot read text from file \"$progressFile\"", ex)
-                ""
-            }
-        } catch (ex: Exception) {
-            ctx.logError("Cannot parse file name from uri \"${file.uri}\"", ex)
-            ""
-        }
-    }
 }

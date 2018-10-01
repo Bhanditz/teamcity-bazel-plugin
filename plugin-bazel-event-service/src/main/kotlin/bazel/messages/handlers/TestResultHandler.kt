@@ -9,7 +9,6 @@ import bazel.messages.Color
 import bazel.messages.ServiceMessageContext
 import bazel.messages.apply
 import java.io.File
-import java.net.URI
 
 class TestResultHandler : EventHandler {
     override val priority: HandlerPriority
@@ -29,12 +28,13 @@ class TestResultHandler : EventHandler {
                 }
 
                 for (test in event.testActionOutput) {
-                    val file = File(URI(test.uri))
+                    val file = File(test.filePath)
+
                     if (ctx.verbosity.atLeast(Verbosity.Verbose)) {
                         ctx.onNext(ctx.messageFactory.createMessage("$file".apply(Color.Items)))
                     }
 
-                    if (file.name.endsWith(".xml", true)) {
+                    if (test.name.endsWith(".xml", true)) {
                         if (!file.exists()) {
                             ctx.onNext(ctx.messageFactory.createMessage("File \"$file\" does not exist".apply(Color.Warning)))
                         }

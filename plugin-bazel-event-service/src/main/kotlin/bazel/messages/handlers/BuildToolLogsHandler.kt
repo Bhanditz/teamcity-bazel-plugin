@@ -18,13 +18,13 @@ class BuildToolLogsHandler : EventHandler {
                 val event = ctx.event.payload.content
                 if (ctx.verbosity.atLeast(Verbosity.Verbose)) {
                     for (log in event.logs) {
-                        if (log.uri.isNullOrEmpty()) {
+                        if (log.content.isEmpty()) {
                             continue
                         }
 
                         ctx.onNext(ctx.messageFactory.createMessage(
                                 ctx.buildMessage()
-                                        .append("${log.name} ${log.uri}".apply(Color.Items))
+                                        .append("${log.name} ${log.filePath}".apply(Color.Items))
                                         .toString()))
                     }
                 }
