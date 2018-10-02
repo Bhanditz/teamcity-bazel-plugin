@@ -28,12 +28,15 @@ class File private constructor(val name: String) {
     }
 
     val content: String
-        get() {
-            return fileContent?.contentToString() ?: getFile(fileUri!!).readText()
-        }
+        get() =
+            when {
+                fileContent != null -> fileContent!!.contentToString()
+                !fileUri.isNullOrBlank() -> getFile(fileUri!!).readText()
+                else -> ""
+            }
 
     val filePath: String by lazy {
-        val file = if (fileUri != null) {
+        val file = if (!fileUri.isNullOrBlank()) {
             getFile(fileUri!!)
         } else {
             val tempFile = java.io.File.createTempFile("bazel-event-file", "tmp")
